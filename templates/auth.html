@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Bagdar.AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
+        
+        /* 🔥 Красивое лого без фона */
+        .brand-logo { mix-blend-mode: screen; filter: brightness(1.2); }
+
+        /* 🔥 Умная валидация полей */
+        input:placeholder-shown { border-color: #1f2937 !important; }
+        input:not(:placeholder-shown):invalid { border-color: #ef4444 !important; color: #f87171 !important; outline: none; }
+        input:focus { border-color: #3b82f6 !important; }
+    </style>
+</head>
+<body class="bg-[#0b0f1a] text-gray-100 min-h-screen flex items-center justify-center p-4">
+    
+    <div class="max-w-md w-full bg-[#161d2f] rounded-[40px] shadow-2xl border border-gray-800/50 overflow-hidden relative">
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-10 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="p-10 relative z-10">
+            <div class="flex flex-col items-center justify-center mb-10">
+                <img src="/static/logo.jpg" class="h-20 w-auto object-contain rounded-xl shadow-2xl border border-gray-700/50 mb-4 brand-logo" alt="Bagdar Logo">
+                <h2 class="text-3xl font-black tracking-tighter text-white uppercase italic leading-none">Bagdar.AI</h2>
+                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-[0.2em] mt-1">Intelligent Coach</p>
+            </div>
+
+            <div id="notification-box" class="hidden mb-6 text-center text-xs font-bold uppercase tracking-widest py-3 rounded-2xl border"></div>
+
+            <div class="flex mb-8 bg-[#0b0f1a] rounded-2xl p-1 border border-gray-800">
+                <button onclick="showLogin()" id="tab-login" class="flex-1 py-3 text-white bg-[#161d2f] rounded-xl font-black uppercase tracking-widest text-xs shadow-lg transition-all">Вход</button>
+                <button onclick="showReg()" id="tab-reg" class="flex-1 py-3 text-gray-500 hover:text-gray-300 rounded-xl font-bold uppercase tracking-widest text-xs transition-all">Регистрация</button>
+            </div>
+
+            <form id="login-form" action="/login" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Email</label>
+                    <input type="email" name="email" placeholder="твоя@почта.com" required 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Пароль</label>
+                    <input type="password" name="password" placeholder="••••••••" required minlength="6" 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                </div>
+                <button type="submit" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-[20px] transition-all shadow-xl shadow-blue-600/20 active:scale-95 uppercase text-xs tracking-widest">
+                    Войти в систему
+                </button>
+            </form>
+
+            <form id="reg-form" action="/register" method="POST" class="space-y-5 hidden">
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Имя атлета</label>
+                    <input type="text" name="name" placeholder="Как к тебе обращаться?" required minlength="2" 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Email</label>
+                    <input type="email" name="email" placeholder="твоя@почта.com" required 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Пароль (Мин. 6 символов)</label>
+                    <input type="password" name="password" placeholder="Придумай надежный пароль" required minlength="6" 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                </div>
+                <button type="submit" class="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-black py-5 rounded-[20px] transition-all shadow-xl shadow-green-600/20 active:scale-95 uppercase text-xs tracking-widest">
+                    Создать аккаунт
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const btnLogin = document.getElementById('tab-login');
+        const btnReg = document.getElementById('tab-reg');
+        const formLogin = document.getElementById('login-form');
+        const formReg = document.getElementById('reg-form');
+        const notifBox = document.getElementById('notification-box');
+
+        function showLogin() {
+            formLogin.classList.remove('hidden');
+            formReg.classList.add('hidden');
+            
+            btnLogin.className = "flex-1 py-3 text-white bg-[#161d2f] rounded-xl font-black uppercase tracking-widest text-xs shadow-lg transition-all";
+            btnReg.className = "flex-1 py-3 text-gray-500 hover:text-gray-300 rounded-xl font-bold uppercase tracking-widest text-xs transition-all";
+        }
+
+        function showReg() {
+            formReg.classList.remove('hidden');
+            formLogin.classList.add('hidden');
+            
+            btnReg.className = "flex-1 py-3 text-white bg-[#161d2f] rounded-xl font-black uppercase tracking-widest text-xs shadow-lg transition-all";
+            btnLogin.className = "flex-1 py-3 text-gray-500 hover:text-gray-300 rounded-xl font-bold uppercase tracking-widest text-xs transition-all";
+        }
+        
+        // Красивая обработка ошибок (без alert)
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('error') === 'invalid_credentials') {
+            notifBox.classList.remove('hidden');
+            notifBox.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-500');
+            notifBox.innerText = 'Неверный Email или Пароль';
+        }
+        if(urlParams.get('success') === 'registered') {
+            notifBox.classList.remove('hidden');
+            notifBox.classList.add('bg-green-500/10', 'border-green-500/30', 'text-green-500');
+            notifBox.innerText = 'Аккаунт создан! Выполните вход.';
+            showLogin(); // Автоматически переключаем на вкладку входа
+        }
+    </script>
+</body>
+</html>

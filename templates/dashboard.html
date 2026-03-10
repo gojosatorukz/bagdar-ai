@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bagdar.AI | Премиум-дашборд</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
+        .prose h3, .prose h4 { color: #60a5fa !important; font-size: 1.1rem !important; font-weight: 800 !important; margin-top: 1.5rem !important; margin-bottom: 0.5rem !important; text-transform: uppercase; letter-spacing: 0.05em; }
+        .prose ul { list-style-type: none !important; padding-left: 0 !important; margin-bottom: 1rem !important; }
+        .prose li { position: relative; padding-left: 1rem; margin-bottom: 0.4rem; color: #9ca3af !important; border-left: 2px solid #374151; margin-left: 4px; }
+        .glass-overlay { backdrop-filter: blur(16px); background: rgba(15, 23, 42, 0.8); }
+        
+        /* ПРЯЧЕМ СТРЕЛКИ У ЧИСЕЛ */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Красный только по факту ошибки при потере фокуса */
+        input:placeholder-shown { border-color: #1f2937 !important; } 
+        input:not(:placeholder-shown):invalid { border-color: #ef4444 !important; color: #f87171 !important; outline: none; }
+        input:focus { border-color: #3b82f6 !important; } 
+        
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem; }
+    </style>
+</head>
+<body class="bg-[#0b0f1a] text-gray-100 min-h-screen pb-10">
+
+    <nav class="bg-[#111827]/90 backdrop-blur-md shadow-2xl p-4 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800/50">
+        <div class="flex items-center gap-4">
+            <img src="/static/logo.jpg" class="h-14 w-auto object-contain rounded-xl shadow-2xl border border-gray-700/50" alt="Bagdar Logo">
+            <span class="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">Bagdar.AI</span>
+            {{if .User.IsPremium}}
+                <span class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900 text-[9px] font-black px-2 py-0.5 rounded uppercase ml-1 shadow-lg shadow-yellow-500/20 tracking-wider">Premium</span>
+            {{end}}
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden md:flex flex-col items-end">
+                <span class="text-[10px] text-gray-500 uppercase font-black tracking-widest">Атлет</span>
+                <span class="text-sm text-white font-bold">{{.User.Name}}</span>
+            </div>
+            <a href="/logout" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all border border-red-500/20 uppercase tracking-widest">Выход</a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 space-y-8">
+            <div class="bg-[#161d2f] p-8 rounded-[32px] shadow-2xl border border-gray-800/50 relative overflow-hidden">
+                <h2 class="text-lg font-black text-white mb-8 flex items-center gap-4 uppercase tracking-wider border-b border-gray-800/50 pb-4">
+                    <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center shadow-inner border border-blue-500/20 text-blue-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    </div>
+                    Твои параметры
+                </h2>
+                <form action="/generate" method="POST" onsubmit="document.getElementById('loader').classList.remove('hidden');" class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Вес (кг)</label>
+                            <input type="number" step="any" name="weight" value="{{if gt .User.Weight 0.0}}{{.User.Weight}}{{end}}" required min="20" placeholder="0.0" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Рост (см)</label>
+                            <input type="number" step="any" name="height" value="{{if gt .User.Height 0}}{{.User.Height}}{{end}}" required min="100" placeholder="0" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Цель тренировок</label>
+                        <select name="goal" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500">
+                            <option value="Набор мышечной массы" {{if eq .User.Goal "Набор мышечной массы"}}selected{{end}}>Набор мышечной массы</option>
+                            <option value="Похудение и сушка" {{if eq .User.Goal "Похудение и сушка"}}selected{{end}}>Похудение и сушка</option>
+                            <option value="Поддержание формы" {{if eq .User.Goal "Поддержание формы"}}selected{{end}}>Поддержание формы</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Опыт в зале</label>
+                        <select name="experience" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500">
+                            <option value="Новичок" {{if eq .User.Experience "Новичок"}}selected{{end}}>Новичок</option>
+                            <option value="Средний" {{if eq .User.Experience "Средний"}}selected{{end}}>Средний (6 мес - 2 года)</option>
+                            <option value="Опытный" {{if eq .User.Experience "Опытный"}}selected{{end}}>Опытный</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest text-blue-400">Тренировок в неделю (1-7)</label>
+                        <input type="number" name="days" value="3" min="1" max="7" required class="w-full bg-[#0b0f1a] border border-blue-900/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-[20px] transition-all shadow-xl active:scale-95 uppercase text-xs tracking-widest">Сгенерировать ИИ-план</button>
+                    <div id="loader" class="hidden text-center text-blue-400 text-[10px] font-black uppercase animate-pulse mt-4">Bagdar.AI вычисляет маршрут... ⏳</div>
+                </form>
+            </div>
+
+            <div class="relative bg-[#161d2f] p-8 rounded-[32px] shadow-2xl border border-gray-800/50 overflow-hidden">
+                {{if not .User.IsPremium}}
+                <div class="absolute inset-0 glass-overlay z-10 flex flex-col items-center justify-center p-8 text-center">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 border border-gray-700 shadow-2xl text-gray-400">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-white font-extrabold uppercase text-xs mb-6 tracking-widest">Дневник тренировок PRO</h3>
+                    <a href="/billing" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-black py-4 px-10 rounded-full text-[10px] uppercase transition-all shadow-2xl">Открыть доступ</a>
+                </div>
+                {{end}}
+
+                <div class="{{if not .User.IsPremium}} filter blur-[8px] opacity-20 pointer-events-none {{end}}">
+                    <h2 class="text-lg font-black text-white mb-8 border-b border-gray-800/50 pb-4 flex items-center gap-4 uppercase tracking-wider">
+                        <div class="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center shadow-inner border border-green-500/20 text-green-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        Запись подхода
+                    </h2>
+                    <form action="/log_workout" method="POST" class="space-y-5">
+                        <div>
+                            <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">День тренировки</label>
+                            <select id="dayFilterSelect" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none">
+                                <option value="">Сначала план...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Упражнение</label>
+                            <select id="autoExerciseSelect" name="exercise" required class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none disabled:opacity-50" disabled>
+                                <option value="">Сначала выберите день ☝️</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Вес (кг)</label>
+                                <input type="number" step="any" name="weight" placeholder="0.0" required min="0.1" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-green-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Повторения</label>
+                                <input type="number" name="reps" placeholder="0" required min="1" class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-green-500 transition-all">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-black py-4 rounded-[20px] transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest">Добавить в дневник</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-[#161d2f] p-10 rounded-[40px] shadow-2xl border border-gray-800/50">
+                <div class="flex items-center gap-4 mb-10 border-b border-gray-800/50 pb-6">
+                    <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-500/20 text-indigo-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Твоя ИИ-программа</h2>
+                </div>
+                {{if .User.AIPlan}}
+                    <div id="aiPlanContainer" class="prose prose-invert max-w-none bg-[#0f172a]/40 p-10 rounded-[32px] border border-gray-800/50 shadow-inner overflow-hidden">
+                        {{.User.AIPlan}}
+                    </div>
+                {{else}}
+                    <div class="text-center py-24 border-2 border-dashed border-gray-800/50 rounded-[40px] text-gray-600 font-bold uppercase tracking-widest">
+                        Заполните параметры и сгенерируйте план
+                    </div>
+                {{end}}
+            </div>
+
+            <div class="relative bg-[#161d2f] p-10 rounded-[40px] shadow-2xl border border-gray-800/50 overflow-hidden">
+                {{if not .User.IsPremium}}
+                <div class="absolute inset-0 glass-overlay z-10 flex flex-col items-center justify-center p-10 text-center">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 border border-blue-500/20 shadow-2xl text-blue-500">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-white uppercase mb-4 tracking-tighter italic">АНАЛИТИКА ПРОГРЕССА</h3>
+                    <p class="text-gray-400 mb-10 max-w-sm font-medium">Смотрите за ростом силовых показателей в реальном времени с подпиской Premium.</p>
+                    <a href="/billing" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-5 px-14 rounded-full shadow-2xl uppercase text-xs tracking-widest">Попробовать бесплатно</a>
+                </div>
+                {{end}}
+
+                <div class="{{if not .User.IsPremium}} filter blur-[12px] opacity-10 pointer-events-none {{end}}">
+                    <div class="flex justify-between items-center mb-10">
+                        <h2 class="text-xl font-black text-white tracking-tighter uppercase italic">Прогресс упражнения</h2>
+                        <select id="chartExerciseFilter" class="bg-[#0b0f1a] border border-gray-800 rounded-2xl px-6 py-3 text-sm text-white font-bold outline-none focus:border-blue-500">
+                            <option value="all">Все записи</option>
+                        </select>
+                    </div>
+                    
+                    <div class="w-full h-80 bg-[#0b0f1a]/50 rounded-[32px] p-8 border border-gray-800/50 shadow-inner">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+
+                    <h3 class="text-lg font-black text-gray-500 mt-12 mb-6 border-b border-gray-800/50 pb-4 uppercase tracking-widest">История записей</h3>
+                    <div class="overflow-x-auto rounded-[24px] border border-gray-800/50 bg-[#0b0f1a]/30">
+                        <table class="w-full text-left text-sm text-gray-400">
+                            <thead class="text-[10px] uppercase bg-[#0b0f1a] text-gray-600 font-black sticky top-0 border-b border-gray-800">
+                                <tr>
+                                    <th class="px-8 py-5">Дата</th>
+                                    <th class="px-8 py-5">Упражнение</th>
+                                    <th class="px-8 py-5 text-center">Вес (кг)</th>
+                                    <th class="px-8 py-5 text-center">Раз</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800/30">
+                                {{range .Logs}}
+                                <tr class="hover:bg-gray-800/20 transition-colors">
+                                    <td class="px-8 py-5 text-gray-600 font-medium">{{.Date}}</td>
+                                    <td class="px-8 py-5 text-white font-extrabold">{{.Exercise}}</td>
+                                    <td class="px-8 py-5 text-green-500 font-black text-center bg-green-500/5">{{.WeightUsed}}</td>
+                                    <td class="px-8 py-5 text-center font-bold text-gray-100">{{.Reps}}</td>
+                                </tr>
+                                {{else}}
+                                <tr><td colspan="4" class="px-8 py-12 text-center text-gray-600 italic">Дневник пуст.</td></tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const planContainer = document.getElementById('aiPlanContainer');
+        const daySelect = document.getElementById('dayFilterSelect');
+        const autoSelect = document.getElementById('autoExerciseSelect');
+
+        function parsePlan() {
+            if (!planContainer || !daySelect || !autoSelect) return;
+            let trainingDays = [];
+            let currentDay = null;
+            const dayKeywords = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье', 'день 1', 'день 2', 'день 3', 'день 4', 'день 5', 'день 6', 'день 7'];
+            const adviceWords = ['совет', 'важно', 'бжу', 'питание', 'рекомендац', 'примечание'];
+            const exerciseKeywords = ['жим', 'тяга', 'присед', 'гантел', 'штанга', 'блок', 'разводка', 'сгибан', 'разгибан', 'отжимания', 'подтягив', 'планка', 'выпады', 'мостик', 'кардио', 'пресс', 'кардио', 'бег', 'прыжки', 'скручивания'];
+
+            const allElements = planContainer.querySelectorAll('*');
+            allElements.forEach(el => {
+                let text = el.innerText.trim();
+                if (text.length < 3) return;
+                let lowerText = text.toLowerCase();
+                if (adviceWords.some(w => lowerText.includes(w)) && !el.tagName.includes('LI')) return;
+
+                let isDay = dayKeywords.some(k => lowerText.includes(k));
+                let isListItem = (el.tagName === 'LI');
+
+                if (isDay && !isListItem && text.length < 70) {
+                    let cleanDayName = text.split(/[:—–-]/)[0].trim();
+                    cleanDayName = cleanDayName.replace(/пример тренировки/gi, '').trim();
+                    cleanDayName = cleanDayName.charAt(0).toUpperCase() + cleanDayName.slice(1).toLowerCase();
+                    currentDay = { name: cleanDayName, exercises: [] };
+                    trainingDays.push(currentDay);
+                } else if (isListItem && currentDay) {
+                    if (exerciseKeywords.some(key => lowerText.includes(key))) {
+                        let exName = text.split(/[:—–-]/)[0].trim().replace(/^\d+[\.\)]\s*/, '');
+                        if (exName.includes('(')) exName = exName.split('(')[0].trim();
+                        if (exName.length > 3 && exName.length < 50) {
+                            if (!currentDay.exercises.includes(exName)) currentDay.exercises.push(exName);
+                        }
+                    }
+                }
+            });
+
+            trainingDays = trainingDays.filter(d => d.exercises.length > 0);
+            if (trainingDays.length > 0) {
+                daySelect.innerHTML = '<option value="">-- Выберите день --</option>';
+                trainingDays.forEach((day, index) => {
+                    daySelect.innerHTML += `<option value="${index}">${day.name}</option>`;
+                });
+                daySelect.addEventListener('change', (e) => {
+                    const idx = e.target.value;
+                    autoSelect.innerHTML = '';
+                    if (idx !== "") {
+                        autoSelect.disabled = false;
+                        trainingDays[idx].exercises.forEach(ex => {
+                            autoSelect.innerHTML += `<option value="${ex}">${ex}</option>`;
+                        });
+                    } else {
+                        autoSelect.disabled = true;
+                        autoSelect.innerHTML = '<option value="">Сначала выберите день ☝️</option>';
+                    }
+                });
+            }
+        }
+
+        window.addEventListener('load', parsePlan);
+
+        // CHARTS LOGIC
+        const rawLogData = [
+            {{range .Logs}} { date: '{{.Date}}', exercise: '{{.Exercise}}', weight: {{.WeightUsed}} }, {{end}}
+        ].reverse(); 
+
+        const chartFilter = document.getElementById('chartExerciseFilter');
+        let myChart = null;
+
+        const loggedExercises = [...new Set(rawLogData.map(d => d.exercise))];
+        loggedExercises.forEach(ex => {
+            chartFilter.innerHTML += `<option value="${ex}">${ex}</option>`;
+        });
+
+        function renderChart(filterEx) {
+            const canvas = document.getElementById('progressChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let dataToShow = rawLogData;
+            if (filterEx !== 'all') {
+                dataToShow = rawLogData.filter(d => d.exercise === filterEx);
+            }
+            if (dataToShow.length === 0) {
+                if(myChart) myChart.destroy();
+                return;
+            }
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataToShow.map(d => d.date),
+                    datasets: [{
+                        label: 'Вес (кг)',
+                        data: dataToShow.map(d => d.weight),
+                        borderColor: '#3b82f6', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4b5563' } },
+                        x: { grid: { display: false }, ticks: { color: '#4b5563' } }
+                    }
+                }
+            });
+        }
+
+        {{if .User.IsPremium}}
+        if(rawLogData.length > 0) {
+            const defaultEx = rawLogData[rawLogData.length - 1].exercise;
+            chartFilter.value = defaultEx;
+            renderChart(defaultEx);
+        }
+        {{end}}
+
+        chartFilter.addEventListener('change', (e) => {
+            renderChart(e.target.value);
+        });
+    </script>
+</body>
+</html>

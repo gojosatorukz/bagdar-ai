@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата | Bagdar.AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
+        
+        .brand-logo { mix-blend-mode: screen; filter: brightness(1.2); }
+
+        /* Умная валидация полей */
+        input:placeholder-shown { border-color: #1f2937 !important; }
+        input:not(:placeholder-shown):invalid { border-color: #ef4444 !important; color: #f87171 !important; outline: none; }
+        input:focus { border-color: #3b82f6 !important; }
+    </style>
+</head>
+<body class="bg-[#0b0f1a] text-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-[#161d2f] rounded-[40px] shadow-2xl border border-gray-800/50 overflow-hidden relative">
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-10 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="p-10 relative z-10">
+            <div class="flex flex-col items-center justify-center mb-8">
+                <img src="/static/logo.jpg" class="h-16 w-auto object-contain rounded-xl shadow-2xl border border-gray-700/50 mb-4 brand-logo" alt="Bagdar Logo">
+                <h2 class="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">Bagdar.AI PRO</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-2">Оформление подписки</p>
+            </div>
+
+            <div class="bg-[#0b0f1a] rounded-2xl p-5 mb-8 border border-gray-800 flex justify-between items-center shadow-inner">
+                <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Выбранный план:</span>
+                <span class="text-sm font-black text-yellow-500 uppercase tracking-widest">{{.}}</span>
+            </div>
+            
+            <form action="/subscribe" method="POST" class="space-y-6">
+                <input type="hidden" name="plan" value="{{.}}">
+                
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Номер карты</label>
+                    <input type="text" id="card-number" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required 
+                           class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all text-center tracking-widest text-lg font-mono">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">Срок (ММ/ГГ)</label>
+                        <input type="text" id="card-expiry" placeholder="12/25" maxlength="5" required inputmode="numeric"
+                               class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all text-center tracking-widest text-lg font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 font-black mb-2 tracking-widest">CVC</label>
+                        <input type="password" placeholder="•••" maxlength="3" required inputmode="numeric"
+                               class="w-full bg-[#0b0f1a] border border-gray-800 rounded-2xl p-4 text-white font-bold outline-none focus:border-blue-500 transition-all text-center tracking-widest text-lg font-mono">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 font-black py-5 rounded-[20px] transition-all shadow-xl shadow-yellow-500/20 active:scale-95 uppercase text-xs tracking-widest mt-4">
+                    Оплатить и начать
+                </button>
+                
+                <div class="flex items-center justify-center gap-2 mt-6">
+                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <p class="text-center text-[9px] text-gray-500 uppercase font-black tracking-widest">Безопасная оплата Alem Pay</p>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="/billing" class="text-[10px] text-gray-500 hover:text-white uppercase font-bold tracking-widest transition-colors border-b border-transparent hover:border-white pb-1">Вернуться к тарифам</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JS Магия 1: Автоматические пробелы в номере карты
+        const cardInput = document.getElementById('card-number');
+        cardInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formattedValue += ' ';
+                formattedValue += value[i];
+            }
+            e.target.value = formattedValue;
+        });
+
+        // JS Магия 2: Автоматический слеш в дате (ММ/ГГ)
+        const expiryInput = document.getElementById('card-expiry');
+        expiryInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
