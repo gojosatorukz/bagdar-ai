@@ -86,4 +86,4 @@ bagdar-ai/
 
 Создано для хакатона **Alem**.
 
-* **Разработчик:** Bekzat (Backend, AI Integration, Frontend, UX/UI)
+* **[Bekzat Rashiduly](https://github.com/gojosatorukz) — автор и единственный разработчик прототипа.** Сделал сервер на Go, интеграцию с Qwen через Alem API, обработку сгенерированных планов тренировок и веб-интерфейс с дневником и графиками.
